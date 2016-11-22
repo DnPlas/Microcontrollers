@@ -2,25 +2,25 @@
 #include <pic18f25k80.h>
 #pragma CONFIG XINST = OFF
 
-void interrupt seconds(seconds){
+void interrupt second(seconds){
     if ((TMR0IF == 1) && (TMR0IE == 1)){
         TMR0IF = 0;
         segundos--;
-}
+    }
 }
 
 void interrupt minute(minutes){
     if ((TMR0IF == 1) && (TMR0IE == 1)){
         TMR0IF = 0;
-        minutos--;
-}
+        second(minutes*60);
+    }
 }
 
 void interrupt hour(hours){
     if ((TMR0IF == 1) && (TMR0IE == 1)){
         TMR0IF = 0;
-        hours--;
-}
+        minute(hours*60);
+    }
 }
 
 void main (void){
