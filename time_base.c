@@ -1,25 +1,31 @@
 #include <xc.h>
 #include <pic18f25k80.h>
-#pragma CONFIG XINST = OFF
+#pragma config XINST = OFF
+
+unsigned char seconds;
+unsigned char minutes;
+unsigned char hours;
 
 void interrupt second(seconds){
     if ((TMR0IF == 1) && (TMR0IE == 1)){
         TMR0IF = 0;
-        segundos--;
+        seconds--;
     }
 }
 
 void interrupt minute(minutes){
     if ((TMR0IF == 1) && (TMR0IE == 1)){
         TMR0IF = 0;
-        second(minutes*60);
+        minutes = minutes * 60;
+        second(minutes);
     }
 }
 
 void interrupt hour(hours){
     if ((TMR0IF == 1) && (TMR0IE == 1)){
         TMR0IF = 0;
-        minute(hours*60);
+        hours = hours * 60;
+        minute(hours);
     }
 }
 
@@ -32,5 +38,6 @@ void main (void){
     TMR0IE = 1; // Enable TMR0 overflow timer
     
     while(1){
+        second(10);
     }    
 }
