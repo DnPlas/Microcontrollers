@@ -1,3 +1,5 @@
+// This program represents a time base
+
 #include <xc.h>
 #include <pic18f25k80.h>
 #pragma config XINST = OFF
@@ -6,27 +8,23 @@ unsigned char seconds;
 unsigned char minutes;
 unsigned char hours;
 
-void interrupt second(seconds){
-    if ((TMR0IF == 1) && (TMR0IE == 1)){
+void second(seconds){
+    if (TMR0IF == 1){
         TMR0IF = 0;
+        if (seconds != 0){
         seconds--;
+        }
     }
 }
 
-void interrupt minute(minutes){
-    if ((TMR0IF == 1) && (TMR0IE == 1)){
-        TMR0IF = 0;
+void minute(minutes){
         minutes = minutes * 60;
         second(minutes);
-    }
 }
 
-void interrupt hour(hours){
-    if ((TMR0IF == 1) && (TMR0IE == 1)){
-        TMR0IF = 0;
+void hour(hours){
         hours = hours * 60;
         minute(hours);
-    }
 }
 
 void main (void){
