@@ -8,7 +8,7 @@
 #define RAIN_S_CH 2
 #define HUMIDITY_S_CH 1
 #define TEMP_S_CH 3
-#define COUNT_A_DAY 43200000
+#define COUNT_A_DAY 15000 //43200000
 #define WATER_PUMP RC3
 #define E_VALVE_1 RC2
 #define E_VALVE_2 RC4
@@ -18,7 +18,7 @@
 #define BOT_LIMIT_SWITCH RB3
 
 // ---------- VARIABLES ----------
-unsigned long counter = 15000; //COUNT_A_DAY;
+unsigned long counter = COUNT_A_DAY;
 unsigned char mode_select = 0;
 unsigned char emergency_stop = 0;
 
@@ -34,6 +34,7 @@ void motor_routine(unsigned char open, unsigned char close);
 int rain_sensor_data(void);
 int temp_sensor_data(void);
 int adc_read(unsigned char channel);
+int hum_sensor_data(void);
 
 // ---------- MAIN ---------- 
 void main(){
@@ -45,17 +46,16 @@ void main(){
     timer_init();
     BOT_LIMIT_SWITCH = 1;
     while(1){
-        if (emergency_stop == 0 && mode_select == 0){
+        if ((emergency_stop == 0)& (mode_select == 0)){
             auto_routines();
             motor_routine(0,0);
             bt_signal_handler();
         }
-        else if (emergency_stop == 0 && mode_select == 1){
-                bt_signal_handler();   
-            }
-        else{
-            asm ("nop");
-            }
+        else// && (mode_select == 1)){
+            bt_signal_handler();
+//        else{
+//            asm ("nop");
+//            }
         }
     }
 
@@ -134,6 +134,7 @@ void motor_routine(unsigned char open, unsigned char close){
 
 void bt_signal_handler(void){
     if(RC1IF==1){
+        if (mode_select == 0){
         switch (RCREG1){
         case 1:
             TXREG1 = rain_sensor_data();
@@ -145,33 +146,69 @@ void bt_signal_handler(void){
             mode_select = 1;
             gpios_init();
             break;
-        case 4:
-            motor_routine(1,0);
-            break;
-        case 5:
-            motor_routine(0,1);
-            break;
-        case 6:
-            watering_routine(1);
-            break;
-        case 7:
-            watering_routine(2);
-            break;
         case 8:
             TXREG1 = hum_sensor_data();
-            break;
-        case 9:
-            mode_select = 0;
             break;
         case 10:
             gpios_init();
             emergency_stop = 1;
             break;
         case 11:
-            gpios_init();
             emergency_stop = 0;
+            counter = COUNT_A_DAY;
+            return;
             break;
         }
+      }
+        else if (mode_select == 1){
+            switch (RCREG1){
+            case 1:
+                TXREG1 = rain_sensor_data();
+                break;
+            case 2:
+                TXREG1 = temp_sensor_data();
+                break;
+            case 3:
+                mode_select = 1;
+                return;
+                break;
+            case 8:
+                TXREG1 = hum_sensor_data();
+                break;
+            case 4:
+                gpios_init();
+                motor_routine(1,0);
+                break;
+            case 5:
+                gpios_init();
+                motor_routine(0,1);
+                break;
+            case 6:
+                gpios_init();
+                watering_routine(1);
+                break;
+            case 7:
+                gpios_init();
+                watering_routine(2);
+                break;
+            case 9:
+                mode_select = 0;
+                return;
+                break;
+            case 10:
+                gpios_init();
+                emergency_stop = 1;
+                break;
+            case 11:
+                emergency_stop = 0;
+                counter = COUNT_A_DAY;
+                return;
+                break;
+            case 12:
+                gpios_init();
+                break;
+        }
+      }
    }   
 }
 
